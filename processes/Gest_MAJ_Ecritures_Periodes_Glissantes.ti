@@ -1,0 +1,145 @@
+#region Prolog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+
+
+#---------------------------------------------------------------------------------------------------------
+#Region Prolog
+#---------------------------------------------------------------------------------------------------------
+
+
+#---------------------------------------------------------------------------------------------------------
+#Region 00 -  Description
+#---------------------------------------------------------------------------------------------------------
+# -- Gest_MAJ_Ecritures_NEW
+# -- MAJ Dimension Gest_Ecritures sur 3 années glissantes (maille mois)
+# -- Author : DATATILT
+# -- Version : V1.0
+# -- Date : 07/04/2025
+#---------------------------------------------------------------------------------------------------------
+#EndRegion 00 -  Description
+#---------------------------------------------------------------------------------------------------------
+
+
+#---------------------------------------------------------------------------------------------------------
+#Region 01 -  Tech Variables 
+#---------------------------------------------------------------------------------------------------------
+## Local variables initialization relative to process identification 
+vsProcessNm = Lower(GetProcessName()); 
+vnProcessTS = Now(); 
+vsProcessTS = TimSt(vnProcessTS, '\Y-\m-\d \h:\i:\s'); 
+vsProcessId = NumberToString(Int(Rand() *1000000)); 
+vsProcessRandId = NumberToString(Int(Rand() *1000000)); 
+vsProcessId = Fill('0', Max(0, 6 - Long(vsProcessId))) | vsProcessId; 
+vsProcessId = TimSt(vnProcessTS, '\Y\m\d\h\i\s') | vsProcessId; 
+vsProcessTime = TimSt(vnProcessTS, '\Y\m\d_\h\i' | vsProcessRandId );
+
+#---------------------------------------------------------------------------------------------------------
+#EndRegion 01 -  Tech Variables 
+#---------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
+#Region 02 -  Gestion des logs
+# -------------------------------------------------------------------------------------
+DatasourceASCIIDelimiter = ';';
+DatasourceASCIIQuoteCharacter = '';
+cDebugFolder=GetProcessErrorFileDirectory();
+# cDebugFolder=CellGetS('Z_ADMIN_PARAM','TM1DebugRepository','Svalue');
+cDebugProlog  = cDebugFolder| vsProcessNm | '_Prol_' | vsProcessId | '.csv';
+cDebugMeta  = cDebugFolder| vsProcessNm | '_Meta_' | vsProcessId | '.csv';
+cDebugData  = cDebugFolder| vsProcessNm | '_Data_' | vsProcessId | '.csv';
+cDebugEpilog  = cDebugFolder| vsProcessNm | '_Epilog_' | vsProcessId | '.csv';
+
+# -------------------------------------------------------------------------------------
+#EndRegion 02 -  Gestion des logs
+# -------------------------------------------------------------------------------------
+
+vsPeriod_CurrentYear = TimSt(vnProcessTS, '\Y');
+vnPeriod_StartYear = StringToNumber(vsPeriod_CurrentYear)-3;
+vsPeriod_StartYear = NumberToString(vnPeriod_StartYear);
+vsPeriod_StartMonth = TimSt(vnProcessTS, '\m');
+vsPeriod_Start = vsPeriod_StartYear|vsPeriod_StartMonth;
+
+if(pPeriod @<>'' % Dimix('Gest_2_Temps',pPeriod)<>0 & long(pPeriod)=6);
+    vsPeriod_Start = pPeriod ;
+Endif;    
+    
+#-------------------------------------------
+#Region-01 - Source variables
+#-------------------------------------------
+
+
+
+sOdbcName     = CellGetS('Z_ADMIN_PARAM', 'ODBC_DatabaseName', 'Svalue');
+sOdbcUserName = CellGetS('Z_ADMIN_PARAM', 'ODBC_UserName', 'Svalue');
+sOdbcPassword = CellGetS('Z_ADMIN_PARAM', 'ODBC_Password', 'Svalue');
+
+sQuery = 'select *  from savoir.tm1_ecritures where substr(bu,4,1) <> '|char(39)| '1' |char(39) |
+                                ' and BU not like '|char(39)|'34_1%'|char(39) |
+                                ' and rubrique not like '|char(39)|'34_3%' |char(39)| 
+                                ' and Dossier <> '|char(39)|'34_RESULTAT'|char(39)|
+                                ' and supp <> '|char(39)|'O'|char(39)|
+                                ' and left(periode, 6) >= '|char(39)|vsPeriod_Start|char(39);
+
+#-------------------------------------------
+#EndRegion-01 - Source variables
+#-------------------------------------------
+
+
+
+DataSourceType = 'ODBC';
+DatasourceNameForServer = sOdbcName;
+DatasourceUserName = sOdbcUserName;
+DatasourcePassword = sOdbcPassword;
+DatasourceQuery = sQuery;
+
+#endregion
+#region Metadata
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# MAJ DIM
+Retrait_PnL='Oui';
+DIMENSIONELEMENTINSERT('Gest_1_Ecritures','',chrono,'n');
+#endregion
+#region Data
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#sOdbcName,sQuery
+If(pDebug>0);
+    ASCIIOutput( cDebugData,vsPeriod_Start,vsPeriod_StartYear,vsPeriod_StartMonth
+                        ,soc
+                        ,dossier
+                        ,bu
+                        ,rubrique
+                        ,date_cpt
+                        ,rubrique_reporting
+                        ,dossier_valide
+                        ,periode
+                        ,Retrait_PnL
+                           );
+Endif;
+
+#MAJ ATTR
+# Retrait_PnL='Oui';
+ATTRPUTS(soc,'Gest_1_Ecritures',chrono,'Code société');
+ATTRPUTS(dossier,'Gest_1_Ecritures',chrono,'Num. dossier');
+ATTRPUTS(bu,'Gest_1_Ecritures',chrono,'BU');
+ATTRPUTS(rubrique,'Gest_1_Ecritures',chrono,'Rubrique');
+ATTRPUTS(date_cpt,'Gest_1_Ecritures',chrono,'Date cpt');
+ATTRPUTS(rubrique_reporting,'Gest_1_Ecritures',chrono,'Rubrique reporting');
+ATTRPUTS(dossier_valide,'Gest_1_Ecritures',chrono,'Validité dossier');
+ATTRPUTS(periode,'Gest_1_Ecritures',chrono,'Période');
+ATTRPUTS(Retrait_PnL,'Gest_1_Ecritures',chrono,'Retrait_PnL');
+#endregion
+#region Epilog
+
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
